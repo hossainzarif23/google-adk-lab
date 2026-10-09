@@ -3,8 +3,9 @@ import asyncio
 from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
 from google.genai import types
+from typing import Literal
 
-from agent import root_agent
+from agent import get_agent
 
 
 APP_NAME = "weather_tutorial_app"
@@ -12,8 +13,9 @@ USER_ID = "user_1"
 SESSION_ID = "session_001"
 
 
-async def call_agent_async(query: str, runner: Runner):
-    """Send a query to the agent and print its final response."""
+async def call_agent_async(query: str, runner: Runner) -> None:
+    """Send a query to the agent and log its execution."""
+
     print(f"\nUser: {query}")
 
     message = types.Content(
@@ -24,19 +26,33 @@ async def call_agent_async(query: str, runner: Runner):
     async for event in runner.run_async(
         user_id=USER_ID,
         session_id=SESSION_ID,
-        new_message=message
+        new_message=message,
     ):
-        print(f"[Event] Author: {event.author}, Type: {type(event).__name__}, Final: {event.is_final_response()}, Content: {event.content}")
-        if event.is_final_response():
-            if event.content and event.content.parts:
-                for part in event.content.parts:
-                    if part.text:
-                        print(f"Agent: {part.text}")
-            elif event.actions and event.actions.escalate:
-                print(f"Agent escalated: {event.error_message or 'No specific message.'}")
+        if not event.content or not event.content.parts:
+            if event.is_final_response() and event.actions and event.actions.escalate:
+                print(f"[Escalated] {event.error_message or 'No specific message.'}")
+            continue
+
+        for part in event.content.parts:
+            if part.function_call:
+                call = part.function_call
+                print(f"[Tool Call] {call.name}({call.args})")
+
+            elif part.function_response:
+                response = part.function_response
+                print(f"[Tool Result] {response.name}: {response.response}")
+
+            elif part.text and part.thought:
+                print(f"[Thought] {part.text}")
+
+            elif part.text and event.is_final_response():
+                print(f"\nAgent: {part.text}")
+
+        if event.is_final_response() and event.actions and event.actions.escalate:
+            print(f"[Escalated] {event.error_message or 'No specific message.'}")
 
 
-async def main():
+async def main(provider: Literal["gemini", "mimo"]):
     session_service = InMemorySessionService()
 
     await session_service.create_session(
@@ -46,14 +62,17 @@ async def main():
     )
 
     runner = Runner(
-        agent=root_agent,
+        agent=get_agent(provider),
         app_name=APP_NAME,
         session_service=session_service
     )
+    await call_agent_async("Compare the weather in New York, Paris, and Tokyo. Which city has the best weather for walking outdoors?", runner)
 
-    await call_agent_async("What is the weather in New York?", runner)
-    await call_agent_async("How about Paris?", runner)
+
+async def run_comparison():
+    await main("mimo")
+    await main("gemini")
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(run_comparison())

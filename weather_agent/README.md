@@ -1,22 +1,24 @@
-# Weather Agent — ADK Tutorial Step 1
+# Weather Agent — ADK Tutorial Steps 1 and 2
 
-This directory contains the first step of Google's [ADK Agent Team tutorial](https://adk.dev/tutorials/agent-team/): a single weather agent with one tool that retrieves current conditions for a city. The later agent-team, state, and guardrail steps have not been implemented here yet.
+This project follows the first two parts of Google's [ADK Agent Team tutorial](https://adk.dev/tutorials/agent-team/): a single weather agent with an Open-Meteo tool, then an optional multi-model comparison using Gemini and Xiaomi MiMo through LiteLLM.
 
-## How it works
+The later tutorial steps—delegation to a team of agents, session-state personalization, and safety callbacks—have not been implemented yet.
 
-- [`agent.py`](agent.py) defines `root_agent` and its `get_weather` tool.
-- The tool resolves a city using the [Open-Meteo Geocoding API](https://open-meteo.com/en/docs/geocoding-api), then requests current weather from the [Open-Meteo Forecast API](https://open-meteo.com/en/docs).
-- The returned conditions include temperature, relative humidity, apparent temperature, precipitation, weather code, and wind speed.
-- [`main.py`](main.py) creates an in-memory session and an ADK `Runner`, then sends two sample questions (New York and Paris) in the same session and prints the run events and responses.
+## What it does
 
-The geocoding request uses its first result. If a city name is ambiguous, include a country in the query. Open-Meteo requires an internet connection but this example does not need an Open-Meteo API key. Gemini does require a Google API key.
+- [`agent.py`](agent.py) defines the weather lookup tool and builds the agent for either Gemini or MiMo.
+- The `get_weather` tool resolves a city with the Open-Meteo Geocoding API and retrieves current weather from the Forecast API. It returns temperature, relative humidity, apparent temperature, precipitation, weather code, wind speed, and their units.
+- [`main.py`](main.py) creates an in-memory session and ADK `Runner` for each provider, then sends the same comparison question to MiMo and Gemini in sequence. It prints tool calls, tool results, and final responses.
+
+The script compares New York, Paris, and Tokyo. Geocoding uses the first result, so include a country when a city name could be ambiguous. Open-Meteo needs internet access but no API key; both model providers need their own API key to run the full comparison.
 
 ## Requirements
 
 - Python 3.10 or newer
 - [`uv`](https://docs.astral.sh/uv/getting-started/installation/)
 - A Gemini API key from [Google AI Studio](https://aistudio.google.com/apikey)
-- Internet access for Gemini and Open-Meteo
+- A Xiaomi MiMo API key
+- Internet access for the model providers and Open-Meteo
 
 ## Set up
 
@@ -27,7 +29,7 @@ From the repository root, create and activate the shared virtual environment, th
 ```powershell
 uv venv
 .venv\Scripts\Activate.ps1
-uv pip install google-adk requests python-dotenv
+uv pip install google-adk requests python-dotenv "litellm>=1.84"
 ```
 
 ### macOS or Linux
@@ -35,20 +37,22 @@ uv pip install google-adk requests python-dotenv
 ```bash
 uv venv
 source .venv/bin/activate
-uv pip install google-adk requests python-dotenv
+uv pip install google-adk requests python-dotenv "litellm>=1.84"
 ```
 
-Create `weather_agent/.env` with your Gemini API key:
+Create `weather_agent/.env` with your provider settings:
 
 ```dotenv
-GOOGLE_API_KEY="your-api-key"
+GOOGLE_GENAI_USE_ENTERPRISE=False
+GOOGLE_API_KEY="your-google-api-key"
+XIAOMI_MIMO_API_KEY="your-xiaomi-mimo-api-key"
 ```
 
-Keep the key private. The repository-level `.gitignore` excludes `.env` files.
+Keep these keys private. The repository-level `.gitignore` excludes `.env` files.
 
-## Run
+## Run the comparison
 
-The script imports `agent` from the current directory, so run it from `weather_agent` with the virtual environment activated:
+With the virtual environment activated, run the script from this directory. Its imports expect the current working directory to be `weather_agent`.
 
 ### Windows PowerShell
 
@@ -64,8 +68,11 @@ cd weather_agent
 python main.py
 ```
 
-The script currently sends its two sample queries automatically; it is not an interactive chat loop. To try a different query, edit the `call_agent_async(...)` calls in `main.py`.
+The script sends a fixed sample question to each provider; it is not an interactive chat loop. Change the query in `main.py` to compare another request.
 
-## Tutorial reference
+## References
 
 - [ADK Agent Team tutorial](https://adk.dev/tutorials/agent-team/)
+- [ADK LiteLLM integration](https://google.github.io/adk-docs/agents/models/litellm/)
+- [LiteLLM Xiaomi MiMo provider](https://docs.litellm.ai/docs/providers/xiaomi_mimo)
+- [Open-Meteo API documentation](https://open-meteo.com/en/docs)
