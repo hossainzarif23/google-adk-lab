@@ -1,39 +1,29 @@
 # Google ADK Python Learning Lab
 
-This repository contains two small agents built with Google's [Agent Development Kit (ADK) for Python](https://adk.dev/get-started/python/): a timezone lookup quickstart and a multi-tool weather and time assistant.
+A hands-on learning repository for Google's [Agent Development Kit (ADK) for Python](https://adk.dev/). It contains a quickstart agent, an expanded weather-and-time example, and the first step of the [ADK Agent Team tutorial](https://adk.dev/tutorials/agent-team/).
 
-## Agents
+## Examples
 
-### `my_agent` — timezone lookup
+| Directory | What it demonstrates | How to run |
+| --- | --- | --- |
+| [`my_agent`](my_agent/) | Quickstart agent that reports the current time for a city | `adk run my_agent` |
+| [`multi_tool_agent`](multi_tool_agent/) | Weather and timezone tools in one agent | `adk run multi_tool_agent` |
+| [`weather_agent`](weather_agent/) | Tutorial Step 1: a single weather agent, an Open-Meteo tool, and explicit Runner/session setup | `cd weather_agent` then `python main.py` |
 
-`my_agent/agent.py` defines `root_agent` and the `get_current_time` tool. The assistant determines a city's IANA timezone and returns its current time in ISO 8601 format. Examples of timezone names include `Asia/Dhaka` and `Europe/London`.
+The `weather_agent` directory currently implements Step 1 of the tutorial. It is not yet the multi-agent team from the later tutorial steps. See its [README](weather_agent/README.md) for focused setup and run instructions.
 
-### `multi_tool_agent` — weather and local time
+## Shared setup
 
-`multi_tool_agent/agent.py` defines `weather_time_agent` with two tools:
+Requirements: Python 3.10 or newer, [`uv`](https://docs.astral.sh/uv/getting-started/installation/), a Gemini API key, and an internet connection.
 
-- `get_weather` looks up a city with the Open-Meteo geocoding API, then retrieves current temperature, humidity, apparent temperature, precipitation, weather code, and wind speed from Open-Meteo.
-- `get_current_time` returns the current time for an IANA timezone.
-
-The assistant can answer weather questions, time questions, or both. Weather lookup uses the first geocoding result, so include a country when a city name could refer to more than one place. Open-Meteo access requires an internet connection and no API key for this example.
-
-## Requirements
-
-- Python 3.10 or newer
-- [`uv`](https://docs.astral.sh/uv/getting-started/installation/)
-- A Gemini API key from [Google AI Studio](https://aistudio.google.com/apikey)
-- An internet connection for Gemini and Open-Meteo requests
-
-## Set up
-
-Run these commands from the repository root. They create a local virtual environment and install ADK plus the `requests` dependency used by `multi_tool_agent`.
+From the repository root, create a virtual environment and install the dependencies used by the examples:
 
 ### Windows PowerShell
 
 ```powershell
 uv venv
 .venv\Scripts\Activate.ps1
-uv pip install google-adk requests
+uv pip install google-adk requests python-dotenv
 ```
 
 ### macOS or Linux
@@ -41,44 +31,29 @@ uv pip install google-adk requests
 ```bash
 uv venv
 source .venv/bin/activate
-uv pip install google-adk requests
+uv pip install google-adk requests python-dotenv
 ```
 
-Create an `.env` file inside the folder for the agent you want to run, such as `my_agent/.env` or `multi_tool_agent/.env`, and add your Gemini API key:
+For `my_agent` and `multi_tool_agent`, save your Gemini key in the selected agent folder's `.env` file:
 
 ```dotenv
 GOOGLE_API_KEY="your-api-key"
 ```
 
-Keep the key private. The repository's `.gitignore` excludes `.env` files and local ADK session data.
+For `weather_agent`, follow its [README](weather_agent/README.md) for the key location and launch instructions. Local `.env` files, virtual environments, and ADK session data are ignored by Git.
 
-## Run an agent
+## Run the ADK web interface
 
-With the virtual environment activated, start either agent from the repository root:
-
-```bash
-adk run my_agent
-```
-
-```bash
-adk run multi_tool_agent
-```
-
-To use ADK's local development chat interface instead, run:
+With the virtual environment activated, start the development UI from the repository root:
 
 ```bash
 adk web --port 8000
 ```
 
-Open <http://localhost:8000> and select `my_agent` or `multi_tool_agent`. ADK Web is intended for development and debugging, not production use.
+Open <http://localhost:8000> and select `my_agent` or `multi_tool_agent`. The tutorial's `weather_agent` example uses its own Runner script described in its README. ADK Web is for development and debugging, not production use.
 
-Example questions:
-
-- `my_agent`: “What time is it in Dhaka?”
-- `multi_tool_agent`: “What is the current weather and local time in London?”
-
-## Learn more
+## References
 
 - [ADK Python quickstart](https://adk.dev/get-started/python/)
-- [ADK documentation](https://google.github.io/adk-docs/)
+- [ADK Agent Team tutorial](https://adk.dev/tutorials/agent-team/)
 - [Open-Meteo API documentation](https://open-meteo.com/en/docs)
