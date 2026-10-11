@@ -1,6 +1,6 @@
 # Google ADK Python Learning Lab
 
-A hands-on learning repository for Google's [Agent Development Kit (ADK) for Python](https://adk.dev/). It contains a quickstart agent, an expanded weather-and-time example, and work through Step 2 of the [ADK Agent Team tutorial](https://adk.dev/tutorials/agent-team/).
+A hands-on learning repository for Google's [Agent Development Kit (ADK) for Python](https://adk.dev/). It includes the Python quickstart, a weather-and-time agent, model comparisons with LiteLLM, and an adapted agent-team example for code review and test design.
 
 ## Examples
 
@@ -8,15 +8,16 @@ A hands-on learning repository for Google's [Agent Development Kit (ADK) for Pyt
 | --- | --- | --- |
 | [`my_agent`](my_agent/) | Quickstart agent that reports the current time for a city | `adk run my_agent` |
 | [`multi_tool_agent`](multi_tool_agent/) | Weather and timezone tools in one agent | `adk run multi_tool_agent` |
-| [`weather_agent`](weather_agent/) | Tutorial Steps 1 and 2: a weather agent, an Open-Meteo tool, and a Gemini/MiMo comparison through LiteLLM | `cd weather_agent` then `python main.py` |
+| [`weather_agent`](weather_agent/) | Agent Team tutorial Steps 1 and 2: weather lookup and Gemini/MiMo comparison | `cd weather_agent` then `python main.py` |
+| [`code-review-team`](code-review-team/) | Step 3 delegation pattern adapted to code review and pytest test generation | `cd code-review-team` then `python main.py` |
 
-The `weather_agent` directory implements the single-agent weather lookup and optional multi-model comparison. Later tutorial steps—agent delegation, session-state personalization, and safety callbacks—are not implemented yet. See its [README](weather_agent/README.md) for setup and run instructions.
+The `weather_agent` example is still a single agent; later tutorial steps for delegation, session-state personalization, and safety callbacks are not implemented there. `code-review-team` demonstrates delegation with different specialists, but uses code review and test design instead of the tutorial's weather, greeting, and farewell roles. See each directory's README for setup and behavior.
 
-## Shared setup
+## Requirements and setup
 
-Requirements: Python 3.10 or newer, [`uv`](https://docs.astral.sh/uv/getting-started/installation/), a Gemini API key, and an internet connection. The `weather_agent` comparison also needs a Xiaomi MiMo API key.
+You need Python 3.10 or newer, [`uv`](https://docs.astral.sh/uv/getting-started/installation/), and internet access. The time and weather examples use a Gemini API key. The `weather_agent` model comparison and `code-review-team` use Xiaomi MiMo through LiteLLM.
 
-From the repository root, create a virtual environment and install the dependencies used by the examples:
+From the repository root, create a virtual environment and install the dependencies:
 
 ### Windows PowerShell
 
@@ -34,13 +35,13 @@ source .venv/bin/activate
 uv pip install google-adk requests python-dotenv "litellm>=1.84"
 ```
 
-For `my_agent` and `multi_tool_agent`, save your Gemini key in the selected agent folder's `.env` file:
+Create a `.env` file in each agent folder with the credentials that example needs:
 
-```dotenv
-GOOGLE_API_KEY="your-api-key"
-```
+- `my_agent/.env` and `multi_tool_agent/.env`: `GOOGLE_API_KEY`
+- `weather_agent/.env`: `GOOGLE_API_KEY`, `XIAOMI_MIMO_API_KEY`, and `GOOGLE_GENAI_USE_ENTERPRISE=False`
+- `code-review-team/.env`: `XIAOMI_MIMO_API_KEY`
 
-For `weather_agent`, set both `GOOGLE_API_KEY` and `XIAOMI_MIMO_API_KEY` in `weather_agent/.env`, and set `GOOGLE_GENAI_USE_ENTERPRISE=False` to use the Gemini API key. See its [README](weather_agent/README.md) for details. Local `.env` files, virtual environments, and ADK session data are ignored by Git.
+Keep API keys private. The repository `.gitignore` excludes `.env` files, virtual environments, and local ADK session data.
 
 ## Run the ADK web interface
 
@@ -50,10 +51,12 @@ With the virtual environment activated, start the development UI from the reposi
 adk web --port 8000
 ```
 
-Open <http://localhost:8000> and select `my_agent` or `multi_tool_agent`. The tutorial's `weather_agent` example uses its own Runner script described in its README. ADK Web is for development and debugging, not production use.
+Open <http://localhost:8000> and select `my_agent` or `multi_tool_agent`. The `weather_agent` and `code-review-team` examples use their own Runner scripts as described in their READMEs. ADK Web is for development and debugging, not production use.
 
 ## References
 
 - [ADK Python quickstart](https://adk.dev/get-started/python/)
 - [ADK Agent Team tutorial](https://adk.dev/tutorials/agent-team/)
+- [ADK LiteLLM integration](https://adk.dev/agents/models/litellm/)
+- [LiteLLM Xiaomi MiMo provider](https://docs.litellm.ai/docs/providers/xiaomi_mimo)
 - [Open-Meteo API documentation](https://open-meteo.com/en/docs)
